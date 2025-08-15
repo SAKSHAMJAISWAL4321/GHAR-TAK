@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jaiswal Store</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; background-color: #f5fff5; }
+        header { background-color: #28a745; color: white; padding: 15px; text-align: center; }
+        header h1 { margin: 0; font-size: 28px; display: flex; align-items: center; justify-content: center; }
+        header h1 img { width: 35px; margin-right: 10px; }
+        .note { font-size: 14px; color: #fff; margin-top: 5px; }
+        .container { display: flex; flex-wrap: wrap; padding: 15px; }
+        .product { background: white; border: 1px solid #ddd; border-radius: 8px; padding: 10px; margin: 10px; width: 200px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .product img { width: 100%; height: 150px; object-fit: cover; border-radius: 5px; }
+        .product h3 { margin: 5px 0; font-size: 16px; }
+        .price { font-weight: bold; color: #28a745; }
+        .mrp { text-decoration: line-through; color: gray; font-size: 12px; margin-left: 5px; }
+        .cart { position: fixed; right: 0; top: 0; background: white; border-left: 2px solid #ddd; height: 100%; width: 300px; padding: 15px; box-shadow: -2px 0 5px rgba(0,0,0,0.1); overflow-y: auto; }
+        .cart h2 { text-align: center; }
+        .cart-item { display: flex; justify-content: space-between; margin: 5px 0; }
+        button { background: #28a745; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #218838; }
+        .form-group { margin-bottom: 10px; }
+        label { font-size: 14px; }
+        input, select { width: 100%; padding: 6px; border: 1px solid #ccc; border-radius: 4px; }
+        .checkout { margin-top: 10px; background: #007bff; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1><img src="https://cdn-icons-png.flaticon.com/512/3081/3081559.png" alt="cart"> Jaiswal Store</h1>
+    <div class="note">Delivery within 30–45 mins in 1 km area</div>
+</header>
+
+<div class="container" id="product-list"></div>
+
+<div class="cart" id="cart">
+    <h2>Your Cart</h2>
+    <div id="cart-items"></div>
+    <p><strong>Total: ₹<span id="total">0</span></strong></p>
+    
+    <div class="form-group">
+        <label>Name:</label>
+        <input type="text" id="name">
+    </div>
+    <div class="form-group">
+        <label>Address:</label>
+        <input type="text" id="address">
+    </div>
+    <div class="form-group">
+        <label>Phone:</label>
+        <input type="text" id="phone">
+    </div>
+    <div class="form-group">
+        <label>Payment Method:</label>
+        <select id="payment">
+            <option>Cash</option>
+            <option>UPI</option>
+        </select>
+    </div>
+
+    <button class="checkout" onclick="placeOrder()">Place Order on WhatsApp</button>
+</div>
+
+<script>
+const products = [
+    {name: "Milk", mrp: 35, price: 34, img: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/28/Milk_glass.jpg/640px-Milk_glass.jpg"},
+    {name: "Kellogg's Muesli", mrp: 525, price: 450, img: "https://m.media-amazon.com/images/I/71d3rL2rfmL._SL1500_.jpg"},
+    {name: "Besan", mrp: 78, price: 58, img: "https://m.media-amazon.com/images/I/71KJ2Utqf2L._SL1500_.jpg"},
+    {name: "Nandi Aata", mrp: 250, price: 199, img: "https://m.media-amazon.com/images/I/71RrIQfE1mL.jpg"},
+    {name: "Mom's Magic Biscuit", mrp: 45, price: 40, img: "https://m.media-amazon.com/images/I/81WwTfUgEAL._SL1500_.jpg"},
+    {name: "Corn Flakes", mrp: 140, price: 130, img: "https://m.media-amazon.com/images/I/91Hb0h+4DkL._SL1500_.jpg"},
+    {name: "Chocos", mrp: 235, price: 125, img: "https://m.media-amazon.com/images/I/91vTn3mFEeL._SL1500_.jpg"},
+    {name: "Bread", mrp: 50, price: 45, img: "https://m.media-amazon.com/images/I/71UD8tJRYtL.jpg"},
+    {name: "Butter", mrp: 60, price: 55, img: "https://m.media-amazon.com/images/I/81qpgAxRdoL._SL1500_.jpg"},
+    {name: "Maggi", mrp: 14, price: 12, img: "https://m.media-amazon.com/images/I/71p1b8L1r3L._SL1500_.jpg"},
+    {name: "Oil", mrp: 200, price: 190, img: "https://m.media-amazon.com/images/I/81GZsfr0f5L._SL1500_.jpg"},
+    {name: "Rice", mrp: 60, price: 55, img: "https://m.media-amazon.com/images/I/81OYF+cmNGL._SL1500_.jpg"},
+    {name: "Tea", mrp: 120, price: 110, img: "https://m.media-amazon.com/images/I/81+y8lZK1aL._SL1500_.jpg"},
+    {name: "Coffee", mrp: 300, price: 280, img: "https://m.media-amazon.com/images/I/81Nw-QYgSAL._SL1500_.jpg"}
+];
+
+let cart = [];
+
+function displayProducts() {
+    const list = document.getElementById("product-list");
+    products.forEach((p, index) => {
+        list.innerHTML += `
+            <div class="product">
+                <img src="${p.img}" alt="${p.name}">
+                <h3>${p.name}</h3>
+                <span class="price">₹${p.price}</span> <span class="mrp">₹${p.mrp}</span><br>
+                <button onclick="addToCart(${index})">Add to Cart</button>
+            </div>
+        `;
+    });
+}
+
+function addToCart(index) {
+    cart.push(products[index]);
+    updateCart();
+}
+
+function updateCart() {
+    const cartItems = document.getElementById("cart-items");
+    cartItems.innerHTML = "";
+    let total = 0;
+    cart.forEach((item, i) => {
+        cartItems.innerHTML += `<div class="cart-item">
+            ${item.name} - ₹${item.price} 
+            <button onclick="removeFromCart(${i})">x</button>
+        </div>`;
+        total += item.price;
+    });
+
+    if (total > 0 && total < 249) {
+        total += 20;
+        cartItems.innerHTML += `<div class="cart-item">Delivery Charge - ₹20</div>`;
+    }
+
+    document.getElementById("total").textContent = total;
+}
+
+function removeFromCart(i) {
+    cart.splice(i, 1);
+    updateCart();
+}
+
+function placeOrder() {
+    let name = document.getElementById("name").value;
+    let address = document.getElementById("address").value;
+    let phone = document.getElementById("phone").value;
+    let payment = document.getElementById("payment").value;
+
+    if (!name || !address || !phone) {
+        alert("Please fill in all details");
+        return;
+    }
+
+    let total = 0;
+    let orderText = "Order Details:\n";
+    cart.forEach(item => {
+        orderText += `${item.name} - ₹${item.price}\n`;
+        total += item.price;
+    });
+
+    if (total > 0 && total < 249) {
+        total += 20;
+        orderText += `Delivery Charge - ₹20\n`;
+    }
+
+    orderText += `Total: ₹${total}\n\nCustomer: ${name}\nAddress: ${address}\nPhone: ${phone}\nPayment: ${payment}`;
+
+    let whatsappUrl = `https://wa.me/919569554941?text=${encodeURIComponent(orderText)}`;
+    window.open(whatsappUrl, "_blank");
+}
+
+displayProducts();
+</script>
+
+</body>
+</html>
